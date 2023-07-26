@@ -1,4 +1,5 @@
 ﻿using Microservice.Services.CouponAPI.Data;
+using Microservice.Services.CouponAPI.DTO;
 using Microservice.Services.CouponAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,47 +11,45 @@ namespace Microservice.Services.CouponAPI.Controllers
     public class CouponAPIController : ControllerBase
     {
         private readonly CouponDbContext dbContext;
+        private ResponseDTO response;
 
         public CouponAPIController(CouponDbContext dbContext)
         {
             this.dbContext = dbContext;
+            response = new ResponseDTO();
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<ResponseDTO> Get()
         {
             try
             {
                 List<Coupon> coupons = await dbContext.Coupons.ToListAsync();
-                return Ok(coupons);
+                response.Result = coupons;
             }
             catch (Exception ex)
             {
-
+                response.IsSuccess = false;
+                response.Message = ex.Message;
             }
-            return BadRequest();
+            return response;
         }
 
         [HttpGet]
         [Route("{id:int}")]
-        public async Task<IActionResult> Get(int id)
+        public async Task<ResponseDTO> Get(int id)
         {
             try
             {
                 Coupon? coupon = await dbContext.Coupons.FirstOrDefaultAsync(it => it.CouponId == id);
-
-                if (coupon == null)
-                {
-                    return NotFound();
-                }
-
-                return Ok(coupon);
+                response.Result = coupon;
             }
             catch (Exception ex)
             {
-
+                response.IsSuccess = false;
+                response.Message = ex.Message;  
             }
-            return BadRequest();
+            return response;
         }
     }
 }
